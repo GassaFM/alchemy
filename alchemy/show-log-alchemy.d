@@ -155,6 +155,8 @@ int main (string [] args)
 			    `href="./log.css" type="text/css">`);
 			file.writeln (`</head>`);
 			file.writeln (`<body>`);
+			file.writefln (`<p><a href="./index.html">` ~
+			    `Back to main page</a></p>`);
 
 			file.writefln (`<h2>%s:</h2>`, title);
 		}
@@ -163,6 +165,8 @@ int main (string [] args)
 		{
 			file.writefln (`<p>Generated on %s (UTC).</p>`,
 			    nowString);
+			file.writefln (`<p><a href="./index.html">` ~
+			    `Back to main page</a></p>`);
 			file.writeln (`</body>`);
 			file.writeln (`</html>`);
 		}
