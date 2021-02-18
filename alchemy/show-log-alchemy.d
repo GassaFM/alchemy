@@ -44,14 +44,20 @@ int main (string [] args)
 	    .format !("%(%02x%)") ~ ".log";
 	auto alchemyLog = File (fileName, "rb").byLineCopy.map !(split).array;
 
+	string [] materials;
+	materials ~= "AIR";
+	materials ~= "EARTH";
+	materials ~= "FIRE";
+	materials ~= "WATER";
+
 	CurrencySymbol [CurrencySymbol []] recipes;
 	Record [] records;
 	int [CurrencySymbol []] p;
 	int [string] cost;
-	cost["AIR"] = 10_000;
-	cost["EARTH"] = 10_000;
-	cost["FIRE"] = 10_000;
-	cost["WATER"] = 10_000;
+	foreach (mat; materials)
+	{
+		cost[mat] = 10_000;
+	}
 
 	void doHtmlAlchemyLog (string name)
 	{
@@ -109,6 +115,7 @@ int main (string [] args)
 				    .map !(x => cost[x]).sum;
 				if (record.result != "-")
 				{
+					materials ~= record.result;
 					cost[record.result] = record.cost;
 				}
 				records ~= record;
@@ -178,14 +185,14 @@ int main (string [] args)
 			file.writeln (`<table class="log">`);
 			file.writeln (`<thead>`);
 			file.writeln (`<tr>`);
-			file.writefln (`<th>#</th>`);
-			file.writefln (`<th>Timestamp</th>`);
-			file.writefln (`<th>Actor</th>`);
-			file.writefln (`<th>1</th>`);
-			file.writefln (`<th>2</th>`);
-			file.writefln (`<th>3</th>`);
-			file.writefln (`<th>4</th>`);
-			file.writefln (`<th>Result</th>`);
+			file.writefln !(`<th>#</th>`);
+			file.writefln !(`<th>Timestamp</th>`);
+			file.writefln !(`<th>Actor</th>`);
+			file.writefln !(`<th>1</th>`);
+			file.writefln !(`<th>2</th>`);
+			file.writefln !(`<th>3</th>`);
+			file.writefln !(`<th>4</th>`);
+			file.writefln !(`<th>Result</th>`);
 			file.writeln (`</tr>`);
 			file.writeln (`</thead>`);
 			file.writeln (`<tbody>`);
@@ -207,19 +214,44 @@ int main (string [] args)
 			auto file = File (name ~ "-table.html", "wt");
 			writeHeader (file, "Alchemy table");
 
-			file.writeln (`<table class="log">`);
+			immutable int filterColumns = 10;
+			immutable real oneWidth = 100.0 / filterColumns;
+			file.writeln (`<table class="log" ` ~
+			    `id="filters-table">`);
+			file.writeln (`<thead>`);
+			file.writefln !(`<th colspan="%s">Filters</th>`)
+			    (filterColumns);
+			file.writeln (`</thead>`);
+			file.writeln (`<tr>`);
+			foreach (i, mat; materials)
+			{
+				file.writefln !(`<td class="place filter ` ~
+				    `filter-off" width=%.3f%%>%s</td>`)
+				    (oneWidth, mat);
+				if ((i + 1) % filterColumns == 0)
+				{
+					file.writeln (`</tr>`);
+					file.writeln (`<tr>`);
+				}
+			}
+			file.writeln (`</tr>`);
+			file.writeln (`</table>`);
+			file.writeln (`<p height="5px"></p>`);
+
+			file.writeln (`<table class="log" ` ~
+			    `id="recipes-table">`);
 			file.writeln (`<thead>`);
 			file.writeln (`<tr>`);
-			file.writefln (`<th>#</th>`);
-			file.writefln (`<th>First Tried</th>`);
-			file.writefln (`<th>Daring Soul</th>`);
-			file.writefln (`<th>1</th>`);
-			file.writefln (`<th>2</th>`);
-			file.writefln (`<th>3</th>`);
-			file.writefln (`<th>4</th>`);
-			file.writefln (`<th>Result</th>`);
-			file.writefln (`<th>Total Tries</th>`);
-			file.writefln (`<th>Aether Cost</th>`);
+			file.writefln !(`<th>#</th>`);
+			file.writefln !(`<th>First Tried</th>`);
+			file.writefln !(`<th>Daring Soul</th>`);
+			file.writefln !(`<th>1</th>`);
+			file.writefln !(`<th>2</th>`);
+			file.writefln !(`<th>3</th>`);
+			file.writefln !(`<th>4</th>`);
+			file.writefln !(`<th>Result</th>`);
+			file.writefln !(`<th>Total Tries</th>`);
+			file.writefln !(`<th>Aether Cost</th>`);
 			file.writeln (`</tr>`);
 			file.writeln (`</thead>`);
 			file.writeln (`<tbody>`);
@@ -249,6 +281,8 @@ int main (string [] args)
 
 			file.writeln (`</tbody>`);
 			file.writeln (`</table>`);
+			file.writeln (`<script src="filter-table.js">` ~
+			    `</script>`);
 			writeFooter (file);
 
 			auto fileCsv = File (name ~ "-table.csv", "wt");
@@ -263,16 +297,16 @@ int main (string [] args)
 			file.writeln (`<table class="log">`);
 			file.writeln (`<thead>`);
 			file.writeln (`<tr>`);
-			file.writefln (`<th>#</th>`);
-			file.writefln (`<th>First Tried</th>`);
-			file.writefln (`<th>Daring Soul</th>`);
-			file.writefln (`<th>1</th>`);
-			file.writefln (`<th>2</th>`);
-			file.writefln (`<th>3</th>`);
-			file.writefln (`<th>4</th>`);
-			file.writefln (`<th>Result</th>`);
-			file.writefln (`<th>Total Tries</th>`);
-			file.writefln (`<th>Aether Cost</th>`);
+			file.writefln !(`<th>#</th>`);
+			file.writefln !(`<th>First Tried</th>`);
+			file.writefln !(`<th>Daring Soul</th>`);
+			file.writefln !(`<th>1</th>`);
+			file.writefln !(`<th>2</th>`);
+			file.writefln !(`<th>3</th>`);
+			file.writefln !(`<th>4</th>`);
+			file.writefln !(`<th>Result</th>`);
+			file.writefln !(`<th>Total Tries</th>`);
+			file.writefln !(`<th>Aether Cost</th>`);
 			file.writeln (`</tr>`);
 			file.writeln (`</thead>`);
 			file.writeln (`<tbody>`);
