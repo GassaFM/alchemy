@@ -169,7 +169,9 @@ int main (string [] args)
 			file.writefln (`<p><a href="./index.html">` ~
 			    `Back to main page</a></p>`);
 
-			file.writefln (`<h2>%s:</h2>`, title);
+			file.writefln (`<h2 style="margin: 0; float: left; ` ~
+			    `margin-right: 20px;">%s:</h2>`, title);
+			file.writefln (`<p id="updated-at"></p>`);
 		}
 
 		void writeFooter (ref File file)
@@ -178,6 +180,10 @@ int main (string [] args)
 			    nowString);
 			file.writefln (`<p><a href="./index.html">` ~
 			    `Back to main page</a></p>`);
+			file.writefln (`<script type="text/javascript">` ~
+			    `genTime = %s;</script>`, nowUnix);
+			file.writefln (`<script type="text/javascript" ` ~
+			    `src="alert-time.js"></script>`);
 			file.writeln (`</body>`);
 			file.writeln (`</html>`);
 		}
