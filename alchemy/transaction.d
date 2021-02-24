@@ -72,7 +72,7 @@ uint64_t stringToName (string input)
 string nameToString (uint64_t input)
 {
 	string res;
-	for (int pos = 64 - 5; input != 0; pos -= 5)
+	for (int pos = 64 - 5; input != 0; pos = max (pos - 5, 0))
 	{
 		auto cur = (input >> pos) & 0x1f;
 		res ~= base32ToChar (cur);

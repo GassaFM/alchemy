@@ -67,7 +67,6 @@ int main (string [] args)
 		int num = 0;
 		foreach (line; alchemyLog)
 		{
-			num += 1;
 			auto actor = line[3];
 
 			cauldronsElement c;
@@ -76,6 +75,10 @@ int main (string [] args)
 				auto buf = line[4].hexStringToBinary;
 				c = buf.parseBinary !(cauldronsElement);
 				assert (buf.empty);
+			}
+			if (c.elements.length != 4)
+			{
+				continue;
 			}
 			sort (c.elements);
 
@@ -87,6 +90,7 @@ int main (string [] args)
 				assert (buf.empty);
 			}
 
+			num += 1;
 			bool isNew = (g.element != g.element.init);
 			lineIsNew ~= isNew;
 			auto key = c.elements.idup;
@@ -159,7 +163,7 @@ int main (string [] args)
 			file.writeln (`<head>`);
 			file.writefln (`<title>%s</title>`, title);
 			file.writeln (`<link rel="stylesheet" ` ~
-			    `href="./log.css" type="text/css">`);
+			    `href="./log2.css" type="text/css">`);
 			file.writeln (`</head>`);
 			file.writeln (`<body>`);
 			file.writefln (`<p><a href="./index.html">` ~
