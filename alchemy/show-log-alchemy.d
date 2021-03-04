@@ -25,12 +25,13 @@ struct Record
 	string result;
 	int num;
 	int tries;
-	int cost;
+	int [5] cost;
 
 	string toCsv ()
 	{
 		return chain (only (num.text, timeStamp, author),
-		    recipe, only (result, tries.text, cost.text)).join (",");
+		    recipe, only (result, tries.text, cost[0].text))
+		    .join (",");
 	}
 }
 
@@ -47,21 +48,21 @@ int main (string [] args)
 	string [] materials;
 	materials ~= "AIR";
 	materials ~= "EARTH";
-	materials ~= "FIRE";
 	materials ~= "WATER";
+	materials ~= "FIRE";
 
 	CurrencySymbol [CurrencySymbol []] recipes;
 	Record [] records;
 	int [CurrencySymbol []] p;
-	int [string] cost;
-	foreach (mat; materials)
+	int [5] [string] cost;
+	foreach (i, mat; materials)
 	{
-		cost[mat] = 10_000;
+		cost[mat] = [10_000, 0, 0, 0, 0];
+		cost[mat][i + 1] = 1;
 	}
 
 	void doHtmlAlchemyLog (string name)
 	{
-		int count1 = 0;
 		string [] [] htmlLog;
 		string [] csvLog;
 		bool [] lineIsNew;
@@ -79,7 +80,7 @@ int main (string [] args)
 			}
 			if (c.elements.length != 4)
 			{
-				writeln (c.elements.front.prettyName);
+//				writeln (c.elements.front.prettyName);
 				continue;
 			}
 			sort (c.elements);
@@ -117,18 +118,17 @@ int main (string [] args)
 				    key.map !(x => x.prettyName).array,
 				    g.element.prettyName,
 				    num, 0, 0);
-				record.cost = record.recipe
-				    .map !(x => cost[x]).sum;
+				foreach (j; 0..5)
+				{
+					record.cost[j] = record.recipe
+					    .map !(x => cost[x][j]).sum;
+				}
 				if (record.result != "-")
 				{
 					materials ~= record.result;
 					cost[record.result] = record.cost;
 				}
 				records ~= record;
-			}
-			if (g.element.prettyName == "OCEAN")
-			{
-				count1++;
 			}
 			records[p[key]].tries += 1;
 
@@ -292,7 +292,7 @@ int main (string [] args)
 				file.writefln !(`<td class="amount">%s</td>`)
 				    (record.tries);
 				file.writefln !(`<td class="amount">%s</td>`)
-				    (record.cost);
+				    (record.cost[0]);
 				file.writefln !(`</tr>`);
 			}
 
@@ -324,6 +324,10 @@ int main (string [] args)
 			file.writefln !(`<th>Result</th>`);
 			file.writefln !(`<th>Total Tries</th>`);
 			file.writefln !(`<th>Aether Cost</th>`);
+			file.writefln !(`<th style="width: 5%%">AIR</th>`);
+			file.writefln !(`<th style="width: 5%%">EARTH</th>`);
+			file.writefln !(`<th style="width: 5%%">WATER</th>`);
+			file.writefln !(`<th style="width: 5%%">FIRE</th>`);
 			file.writeln (`</tr>`);
 			file.writeln (`</thead>`);
 			file.writeln (`<tbody>`);
@@ -351,8 +355,11 @@ int main (string [] args)
 				    (record.result);
 				file.writefln !(`<td class="amount">%s</td>`)
 				    (record.tries);
-				file.writefln !(`<td class="amount">%s</td>`)
-				    (record.cost);
+				foreach (j; 0..5)
+				{
+					file.writefln !(`<td class="amount">` ~
+					    `%s</td>`) (record.cost[j]);
+				}
 				file.writefln !(`</tr>`);
 			}
 
@@ -365,7 +372,6 @@ int main (string [] args)
 			    .map !(record => record.toCsv)
 			    .each !(line => fileCsv.writeln (line));
 		}
-		writeln (count1);
 	}
 
 	doHtmlAlchemyLog ("alchemy");
