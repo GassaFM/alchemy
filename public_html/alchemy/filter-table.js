@@ -2,8 +2,11 @@
 let filters = document.getElementById ('filters-table')
     .getElementsByClassName ('filter');
 for (f of filters) {
-	let g = f;
-	f.addEventListener ('click', event => {updateFilters (g);});
+	f.addEventListener ('click', function (event) {
+		updateFilters (event.target);
+	});
+//	let g = f;
+//	f.addEventListener ('click', event => {updateFilters (g);});
 }
 var theTable = document.getElementById ('recipes-table');
 

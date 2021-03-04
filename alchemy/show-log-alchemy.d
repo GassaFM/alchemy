@@ -61,6 +61,7 @@ int main (string [] args)
 
 	void doHtmlAlchemyLog (string name)
 	{
+		int count1 = 0;
 		string [] [] htmlLog;
 		string [] csvLog;
 		bool [] lineIsNew;
@@ -78,6 +79,7 @@ int main (string [] args)
 			}
 			if (c.elements.length != 4)
 			{
+				writeln (c.elements.front.prettyName);
 				continue;
 			}
 			sort (c.elements);
@@ -123,6 +125,10 @@ int main (string [] args)
 					cost[record.result] = record.cost;
 				}
 				records ~= record;
+			}
+			if (g.element.prettyName == "OCEAN")
+			{
+				count1++;
 			}
 			records[p[key]].tries += 1;
 
@@ -190,7 +196,8 @@ int main (string [] args)
 
 		{
 			auto file = File (name ~ "-log.html", "wt");
-			writeHeader (file, "Alchemy log");
+			writeHeader (file,
+			    "Alchemy log (last 10,000 entries)");
 
 			file.writeln (`<table class="log">`);
 			file.writeln (`<thead>`);
@@ -207,7 +214,7 @@ int main (string [] args)
 			file.writeln (`</thead>`);
 			file.writeln (`<tbody>`);
 
-			foreach (const ref line; htmlLog.retro)
+			foreach (const ref line; htmlLog.retro.take (10_000))
 			{
 				file.writefln ("%-(%s\n%)", line);
 			}
@@ -358,6 +365,7 @@ int main (string [] args)
 			    .map !(record => record.toCsv)
 			    .each !(line => fileCsv.writeln (line));
 		}
+		writeln (count1);
 	}
 
 	doHtmlAlchemyLog ("alchemy");
