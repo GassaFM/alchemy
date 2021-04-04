@@ -30,16 +30,6 @@ string maybeStr () (const auto ref JSONValue value)
 	return value.str;
 }
 
-bool isResource (int id)
-{
-	return 1 <= id && id <= 6 || id == 31 || id == 52;
-}
-
-bool isTool (int id)
-{
-	return (17 <= id && id <= 24) || (32 <= id && id <= 39);
-}
-
 auto parseBinary (T) (ref ubyte [] buffer)
 {
 	static if (is (Unqual !(T) == E [], E))
@@ -86,72 +76,6 @@ auto parseBinary (T) (ref ubyte [] buffer)
 alias hexStringToBinary = str => str.chunks (2).map !(value =>
     to !(ubyte) (value, 16)).array;
 
-alias ItemPlan = Tuple !(long, q{id}, string, q{name}, int, q{weight});
-
-ItemPlan [] itemList;
-short [string] itemIdByName;
-
-void prepare ()
-{
-	itemList = [ItemPlan.init] ~
-	    File ("items.txt").byLineCopy.map !(split)
-	    .map !(t => ItemPlan (t[0].to !(long), t[1], t[2].to !(int)))
-	    .array;
-
-	foreach (ref item; itemList)
-	{
-		itemIdByName[item.name] = item.id.to !(short);
-	}
-}
-
-immutable int items = 75;
-immutable int [] codeList;
-immutable bool [int] codeBreaks;
-
-shared static this ()
-{
-	codeList = (iota (1, 7).array ~ 31 ~ 52 ~
-	    iota (7, 17).array ~
-	    iota (40, 50).array ~ 51 ~
-	    iota (17, 25).array ~
-	    iota (32, 40).array ~ 53 ~
-	    iota (25, 31).array ~ 50 ~ iota (54, 56).array).idup;
-	codeBreaks = [52: true, 16: true, 51: true,
-	    24: true, 53: true, 55: true];
-}
-
-struct Coord
-{
-	int row;
-	int col;
-
-	this (long id)
-	{
-		row = cast (short) (id & 0xFFFF);
-		col = cast (short) (id >> 16);
-	}
-
-	static string numString (int value)
-	{
-		immutable int base = 10;
-		string res;
-		if (value < 0)
-		{
-			res ~= "-";
-			value = -value;
-		}
-		res ~= cast (char) (value / base + '0');
-		res ~= cast (char) (value % base + '0');
-		return res;
-	}
-
-	string toString () const
-	{
-		// as in the game: first column, then row
-		return numString (col) ~ "/" ~ numString (row);
-	}
-}
-
 int allowedSeconds;
 long nowUnix;
 
@@ -185,7 +109,15 @@ shared static this ()
 void updateLogGeneric (alias doSpecific)
     (string endPoint, string queryForm, string query)
 {
-//	auto dfuseToken = File ("../dfuse.token").readln.strip;
+	string dfuseToken;
+	try
+	{
+		dfuseToken = File ("./dfuse.token").readln.strip;
+	}
+	catch (Exception e)
+	{
+		dfuseToken = "";
+	}
 	auto sha256 = query.sha256Of.format !("%(%02x%)");
 
 	immutable string cursorFileName = sha256 ~ ".cursor";
@@ -200,8 +132,14 @@ void updateLogGeneric (alias doSpecific)
 	}
 
 	auto connection = HTTP ();
-//	connection.addRequestHeader ("Authorization", "Bearer " ~ dfuseToken);
+//	connection.verbose (true);
 	connection.addRequestHeader ("content-type", "text/plain");
+	stderr.writeln ("dfuse: ", dfuseToken);
+	if (dfuseToken != "")
+	{
+		connection.addRequestHeader ("Authorization",
+		    "Bearer " ~ dfuseToken);
+	}
 	auto logFile = File (sha256 ~ ".log", "ab");
 	while (true)
 	{

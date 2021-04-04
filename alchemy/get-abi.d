@@ -18,9 +18,9 @@ auto getWithData (Conn) (string url, string [string] data, Conn conn)
 
 int main (string [] args)
 {
-	auto dfuseToken = File ("../dfuse.token").readln.strip;
+//	auto dfuseToken = File ("../dfuse.token").readln.strip;
 	auto connection = HTTP ();
-	connection.addRequestHeader ("Authorization", "Bearer " ~ dfuseToken);
+//	connection.addRequestHeader ("Authorization", "Bearer " ~ dfuseToken);
 //	connection.verbose (true);
 	auto raw = getWithData
 	    (args[1],

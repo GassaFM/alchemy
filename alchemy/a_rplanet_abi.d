@@ -23,8 +23,14 @@ struct devfeelog
 	CurrencyAmount quantity_dev_fee;
 }
 
-struct discover
+struct discover1
 {
+	Name user;
+}
+
+struct discover2
+{
+	string str_symbol;
 	Name user;
 }
 

@@ -20,6 +20,7 @@ import utilities;
 struct Record
 {
 	string timeStamp;
+	string lastChecked;
 	string author;
 	string [] recipe;
 	string result;
@@ -61,13 +62,15 @@ int main (string [] args)
 		cost[mat][i + 1] = 1;
 	}
 
+	immutable int logToDisplay = 10_000;
+
 	void doHtmlAlchemyLog (string name)
 	{
 		string [] [] htmlLog;
 		string [] csvLog;
 		bool [] lineIsNew;
 		int num = 0;
-		foreach (line; alchemyLog)
+		foreach (lineIndex, line; alchemyLog)
 		{
 			auto actor = line[3];
 
@@ -110,47 +113,52 @@ int main (string [] args)
 				g.element.name = "-";
 			}
 
-			if (key !in p)
+			auto curTimeStamp = line[0] ~ " " ~ line[1];
+			auto curResult = g.element.prettyName;
+			if (key !in p || records[p[key]].result != curResult)
 			{
 				p[key] = records.length.to !(int);
 				auto record = Record
-				    (line[0] ~ " " ~ line[1], actor,
+				    (curTimeStamp, curTimeStamp, actor,
 				    key.map !(x => x.prettyName).array,
-				    g.element.prettyName,
-				    num, 0, 0);
+				    curResult, num, 0, 0);
 				foreach (j; 0..5)
 				{
 					record.cost[j] = record.recipe
 					    .map !(x => cost[x][j]).sum;
 				}
-				if (record.result != "-")
+				if (curResult != "-")
 				{
-					materials ~= record.result;
-					cost[record.result] = record.cost;
+					materials ~= curResult;
+					cost[curResult] = record.cost;
 				}
 				records ~= record;
 			}
 			records[p[key]].tries += 1;
+			records[p[key]].lastChecked = line[0] ~ " " ~ line[1];
 
-			string [] curHtmlLog;
-			curHtmlLog ~= `<tr>`;
-			curHtmlLog ~= format (`<td class="amount">%s</td>`,
-			    num);
-			curHtmlLog ~= format (`<td class="time">%s %s</td>`,
-			    line[0], line[1]);
-			curHtmlLog ~= format (`<td class="name">%s</td>`,
-			    actor);
-			foreach (i; 0..4)
+			if (lineIndex + logToDisplay >= alchemyLog.length)
 			{
+				string [] curHtmlLog;
+				curHtmlLog ~= `<tr>`;
+				curHtmlLog ~= format (`<td class="amount">` ~
+				    `%s</td>`, num);
+				curHtmlLog ~= format (`<td class="time">` ~
+				    `%s %s</td>`, line[0], line[1]);
+				curHtmlLog ~= format (`<td class="name">` ~
+				    `%s</td>`, actor);
+				foreach (i; 0..4)
+				{
+					curHtmlLog ~= format
+					    (`<td class="place">%s</td>`,
+					    c.elements[i].prettyName);
+				}
 				curHtmlLog ~= format
-				    (`<td class="place">%s</td>`,
-				    c.elements[i].prettyName);
+				    (`<td class="place">%s%s</td>`,
+				    g.element.prettyName, isNew ? "!" : "");
+				curHtmlLog ~= `</tr>`;
+				htmlLog ~= curHtmlLog;
 			}
-			curHtmlLog ~= format
-			    (`<td class="place">%s%s</td>`,
-			    g.element.prettyName, isNew ? "!" : "");
-			curHtmlLog ~= `</tr>`;
-			htmlLog ~= curHtmlLog;
 
 			csvLog ~= chain (only (num.text,
 			    line[0] ~ " " ~ line[1], actor),
@@ -169,7 +177,7 @@ int main (string [] args)
 			file.writeln (`<head>`);
 			file.writefln (`<title>%s</title>`, title);
 			file.writeln (`<link rel="stylesheet" ` ~
-			    `href="./log2.css" type="text/css">`);
+			    `href="./log3.css" type="text/css">`);
 			file.writeln (`</head>`);
 			file.writeln (`<body>`);
 			file.writefln (`<p><a href="./index.html">` ~
@@ -214,7 +222,7 @@ int main (string [] args)
 			file.writeln (`</thead>`);
 			file.writeln (`<tbody>`);
 
-			foreach (const ref line; htmlLog.retro.take (10_000))
+			foreach (const ref line; htmlLog.retro)
 			{
 				file.writefln ("%-(%s\n%)", line);
 			}
@@ -255,6 +263,10 @@ int main (string [] args)
 			file.writeln (`</table>`);
 			file.writeln (`<p height="5px"></p>`);
 
+			file.writeln (`<p>Blue lines were last attempted ` ~
+			    `before new elements were added. ` ~
+			    `Yellow lines were tried after that.</p>`);
+			file.writeln (`<p height="5px"></p>`);
 			file.writeln (`<table class="log" ` ~
 			    `id="recipes-table">`);
 			file.writeln (`<thead>`);
@@ -273,9 +285,17 @@ int main (string [] args)
 			file.writeln (`</thead>`);
 			file.writeln (`<tbody>`);
 
+			auto timeSeparator =
+			    SysTime.fromSimpleString
+			        ("2021-Mar-30 20:52:06", UTC ());
+
 			foreach_reverse (record; records)
 			{
-				file.writefln !(`<tr>`);
+				auto curTime = SysTime.fromSimpleString
+				    (record.lastChecked, UTC ());
+				file.writefln !(`<tr class="%s">`)
+				    ((timeSeparator <= curTime) ?
+				    "attempt-new" : "attempt-old");
 				file.writefln !(`<td class="amount">%s</td>`)
 				    (record.num);
 				file.writefln !(`<td class="time">%s</td>`)
