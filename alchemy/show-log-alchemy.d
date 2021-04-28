@@ -11,11 +11,31 @@ import std.math;
 import std.range;
 import std.stdio;
 import std.string;
+import std.traits;
 import std.typecons;
 
 import a_rplanet_abi;
 import transaction;
 import utilities;
+
+char [] toCommaNumber (long value)
+{
+	int pos = 24;
+	auto res = new char [pos];
+	do
+	{
+		pos -= 1;
+		if (!(pos & 3))
+		{
+			res[pos] = ',';
+			pos -= 1;
+		}
+		res[pos] = cast (char) (value % 10 + '0');
+		value /= 10;
+	}
+	while (value != 0);
+	return res[pos..$];
+}
 
 struct Record
 {
@@ -36,6 +56,19 @@ struct Record
 	}
 }
 
+struct PlayerInfo
+{
+	string name;
+	int totalCrafts;
+	int okCrafts;
+	int failCrafts;
+	int inventCrafts;
+	int nftCrafts;
+	long totalBurnt;
+	long failBurnt;
+	long maxBurnt;
+}
+
 int main (string [] args)
 {
 	auto nowTime = Clock.currTime (UTC ());
@@ -46,11 +79,30 @@ int main (string [] args)
 	    .format !("%(%02x%)") ~ ".log";
 	auto alchemyLog = File (fileName, "rb").byLineCopy.map !(split).array;
 
+	auto timeSeparator = SysTime.fromSimpleString
+	    ("2021-Mar-30 20:52:06", UTC ());
+	immutable int nftLimit = 600;
+
 	string [] materials;
 	materials ~= "AIR";
 	materials ~= "EARTH";
 	materials ~= "WATER";
 	materials ~= "FIRE";
+
+	bool [string] baseElements;
+	foreach (ref material; materials)
+	{
+		baseElements[material] = true;
+	}
+
+	int [string] tier;
+	foreach (ref material; materials)
+	{
+		tier[material] = 0;
+	}
+
+	PlayerInfo [string] playersTable;
+	PlayerInfo totals;
 
 	CurrencySymbol [CurrencySymbol []] recipes;
 	Record [] records;
@@ -134,8 +186,52 @@ int main (string [] args)
 				}
 				records ~= record;
 			}
+
+			auto prevTime = SysTime.fromSimpleString
+			    (records[p[key]].lastChecked, UTC ());
+			auto nextTime = SysTime.fromSimpleString
+			    (curTimeStamp, UTC ());
+			if (prevTime < timeSeparator &&
+			    timeSeparator <= nextTime &&
+			    records[p[key]].result == "-")
+			{
+				records[p[key]].tries = 0;
+				records[p[key]].author = actor;
+			}
+
 			records[p[key]].tries += 1;
 			records[p[key]].lastChecked = line[0] ~ " " ~ line[1];
+
+			if (actor !in playersTable)
+			{
+				playersTable[actor] = PlayerInfo (actor);
+			}
+			with (playersTable[actor])
+			{
+				auto curCost = records[p[key]].cost[0];
+				auto isOk = (records[p[key]].result != "-");
+				auto curTries = records[p[key]].tries;
+
+				totalCrafts += 1;
+				nftCrafts += isOk && curTries <= nftLimit;
+				totalBurnt += records[p[key]].recipe
+				    .count !(c =>
+				    (c in baseElements) !is null) * 10_000;
+				if (isOk)
+				{
+					okCrafts += 1;
+				}
+				if (!isOk)
+				{
+					failCrafts += 1;
+					failBurnt += curCost;
+					maxBurnt = max (maxBurnt, curCost);
+				}
+				if (isOk && curTries == 1)
+				{
+					inventCrafts += 1;
+				}
+			}
 
 			if (lineIndex + logToDisplay >= alchemyLog.length)
 			{
@@ -167,6 +263,11 @@ int main (string [] args)
 			    ~ (isNew ? "!" : ""))).join (",");
 		}
 
+		auto players = playersTable.byValue.array;
+		auto playersIndex = players.length.iota.array;
+		playersIndex.schwartzSort !(z =>
+		    tuple (-players[z].totalCrafts, players[z].name));
+
 		void writeHeader (ref File file, string title)
 		{
 			file.writeln (`<!DOCTYPE html>`);
@@ -177,7 +278,7 @@ int main (string [] args)
 			file.writeln (`<head>`);
 			file.writefln (`<title>%s</title>`, title);
 			file.writeln (`<link rel="stylesheet" ` ~
-			    `href="./log3.css" type="text/css">`);
+			    `href="./log4.css" type="text/css">`);
 			file.writeln (`</head>`);
 			file.writeln (`<body>`);
 			file.writefln (`<p><a href="./index.html">` ~
@@ -263,9 +364,12 @@ int main (string [] args)
 			file.writeln (`</table>`);
 			file.writeln (`<p height="5px"></p>`);
 
-			file.writeln (`<p>Blue lines were last attempted ` ~
+/*			file.writeln (`<p>Blue lines were last attempted ` ~
 			    `before new elements were added. ` ~
 			    `Yellow lines were tried after that.</p>`);
+*/
+			file.writeln (`<p>The attempts before addition ` ~
+			    `of new elements are not shown.</p>`);
 			file.writeln (`<p height="5px"></p>`);
 			file.writeln (`<table class="log" ` ~
 			    `id="recipes-table">`);
@@ -279,20 +383,20 @@ int main (string [] args)
 			file.writefln !(`<th>3</th>`);
 			file.writefln !(`<th>4</th>`);
 			file.writefln !(`<th>Result</th>`);
-			file.writefln !(`<th>Total Tries</th>`);
+			file.writefln !(`<th>Total Crafts</th>`);
 			file.writefln !(`<th>Aether Cost</th>`);
 			file.writeln (`</tr>`);
 			file.writeln (`</thead>`);
 			file.writeln (`<tbody>`);
 
-			auto timeSeparator =
-			    SysTime.fromSimpleString
-			        ("2021-Mar-30 20:52:06", UTC ());
-
 			foreach_reverse (record; records)
 			{
 				auto curTime = SysTime.fromSimpleString
 				    (record.lastChecked, UTC ());
+				if (curTime < timeSeparator)
+				{
+					continue;
+				}
 				file.writefln !(`<tr class="%s">`)
 				    ((timeSeparator <= curTime) ?
 				    "attempt-new" : "attempt-old");
@@ -342,7 +446,7 @@ int main (string [] args)
 			file.writefln !(`<th>3</th>`);
 			file.writefln !(`<th>4</th>`);
 			file.writefln !(`<th>Result</th>`);
-			file.writefln !(`<th>Total Tries</th>`);
+			file.writefln !(`<th>Total Crafts</th>`);
 			file.writefln !(`<th>Aether Cost</th>`);
 			file.writefln !(`<th style="width: 5%%">AIR</th>`);
 			file.writefln !(`<th style="width: 5%%">EARTH</th>`);
@@ -391,6 +495,65 @@ int main (string [] args)
 			records.retro.filter !(record => record.result != "-")
 			    .map !(record => record.toCsv)
 			    .each !(line => fileCsv.writeln (line));
+		}
+
+		{
+			auto file = File (name ~ "-players.html", "wt");
+			writeHeader (file, "Alchemy players");
+
+			file.writeln (`<p>Click on a column header ` ~
+			    `to sort.</p>`);
+			file.writeln (`<p height="5px"></p>`);
+			file.writeln (`<table class="log" ` ~
+			    `id="players-table">`);
+			file.writeln (`<thead>`);
+			file.writeln (`<tr>`);
+			file.writefln !(`<th>#</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-player">Player</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-all-crafts">All Crafts</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-good-crafts">Good Crafts</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-fail-crafts">Fail Crafts</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-inventions">Inventions</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-nft-crafts">NFT Crafts</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-aether-used">Aether Used</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-aether-burnt">Aether Burnt</th>`);
+			file.writefln !(`<th class="header" ` ~
+			    `id="col-highest-burn">Highest Burn</th>`);
+			file.writeln (`</tr>`);
+			file.writeln (`</thead>`);
+			file.writeln (`<tbody>`);
+
+			foreach (i, j; playersIndex)
+			{
+				auto player = players[j];
+				file.writefln !(`<tr>`);
+				file.writefln !(`<td class="amount">%s</td>`)
+				    (i + 1);
+				file.writefln !(`<td class="name">%s</td>`)
+				    (player.name);
+				static foreach (field;
+				    FieldNameTuple !(PlayerInfo)[1..$])
+				{
+					file.writefln !(`<td class="amount">` ~
+					    `%s</td>`) (mixin ("player." ~
+					    field ~ ".toCommaNumber"));
+				}
+				file.writefln !(`</tr>`);
+			}
+
+			file.writeln (`</tbody>`);
+			file.writeln (`</table>`);
+			file.writefln (`<script type="text/javascript" ` ~
+			    `src="sort-players.js"></script>`);
+			writeFooter (file);
 		}
 	}
 
