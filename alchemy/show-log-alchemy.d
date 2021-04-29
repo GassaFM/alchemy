@@ -103,6 +103,7 @@ int main (string [] args)
 
 	PlayerInfo [string] playersTable;
 	PlayerInfo totals;
+	totals.name = "Total:";
 
 	CurrencySymbol [CurrencySymbol []] recipes;
 	Record [] records;
@@ -213,23 +214,38 @@ int main (string [] args)
 				auto curTries = records[p[key]].tries;
 
 				totalCrafts += 1;
-				nftCrafts += isOk && curTries <= nftLimit;
-				totalBurnt += records[p[key]].recipe
+				totals.totalCrafts += 1;
+
+				auto isNftCraft = isOk && curTries <= nftLimit;
+				nftCrafts += isNftCraft;
+				totals.nftCrafts += isNftCraft;
+
+				auto burnt = records[p[key]].recipe
 				    .count !(c =>
 				    (c in baseElements) !is null) * 10_000;
+				totalBurnt += burnt;
+				totals.totalBurnt += burnt;
 				if (isOk)
 				{
 					okCrafts += 1;
+					totals.okCrafts += 1;
 				}
 				if (!isOk)
 				{
 					failCrafts += 1;
+					totals.failCrafts += 1;
+
 					failBurnt += curCost;
+					totals.failBurnt += curCost;
+
 					maxBurnt = max (maxBurnt, curCost);
+					totals.maxBurnt = max
+					    (totals.maxBurnt, curCost);
 				}
 				if (isOk && curTries == 1)
 				{
 					inventCrafts += 1;
+					totals.inventCrafts += 1;
 				}
 			}
 
@@ -528,15 +544,12 @@ int main (string [] args)
 			file.writefln !(`<th class="header" ` ~
 			    `id="col-highest-burn">Highest Burn</th>`);
 			file.writeln (`</tr>`);
-			file.writeln (`</thead>`);
-			file.writeln (`<tbody>`);
 
-			foreach (i, j; playersIndex)
+			auto writePlayer (long i, ref PlayerInfo player)
 			{
-				auto player = players[j];
 				file.writefln !(`<tr>`);
 				file.writefln !(`<td class="amount">%s</td>`)
-				    (i + 1);
+				    ((i >= 0) ? text (i + 1) : "&nbsp;");
 				file.writefln !(`<td class="name">%s</td>`)
 				    (player.name);
 				static foreach (field;
@@ -549,7 +562,20 @@ int main (string [] args)
 				file.writefln !(`</tr>`);
 			}
 
+			writePlayer (-1, totals);
+			file.writefln !(`<tr height=5px></tr>`);
+			file.writeln (`</thead>`);
+			file.writeln (`<tbody>`);
+			foreach (i, j; playersIndex)
+			{
+				writePlayer (cast (long) (i), players[j]);
+			}
 			file.writeln (`</tbody>`);
+			file.writeln (`<tfoot>`);
+			file.writefln !(`<tr height=5px></tr>`);
+			writePlayer (-1, totals);
+			file.writeln (`</tfoot>`);
+
 			file.writeln (`</table>`);
 			file.writefln (`<script type="text/javascript" ` ~
 			    `src="sort-players.js"></script>`);
