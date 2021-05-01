@@ -18,6 +18,15 @@ import a_rplanet_abi;
 import transaction;
 import utilities;
 
+immutable SysTime timeSeparator;
+immutable int nftLimit = 600;
+
+shared static this ()
+{
+	timeSeparator = SysTime.fromSimpleString
+	    ("2021-Mar-30 20:52:06", UTC ());
+}
+
 char [] toCommaNumber (long value)
 {
 	int pos = 24;
@@ -50,8 +59,14 @@ struct Record
 
 	string toCsv ()
 	{
+		auto curResult = result;
+		auto curTime = SysTime.fromSimpleString (lastChecked, UTC ());
+		if ((curTime < timeSeparator) && curResult == "-")
+		{
+			curResult = "=";
+		}
 		return chain (only (num.text, timeStamp, author),
-		    recipe, only (result, tries.text, cost[0].text))
+		    recipe, only (curResult, tries.text, cost[0].text))
 		    .join (",");
 	}
 }
@@ -78,10 +93,6 @@ int main (string [] args)
 	auto fileName = sha256Of ("account:a.rplanet action:discover")
 	    .format !("%(%02x%)") ~ ".log";
 	auto alchemyLog = File (fileName, "rb").byLineCopy.map !(split).array;
-
-	auto timeSeparator = SysTime.fromSimpleString
-	    ("2021-Mar-30 20:52:06", UTC ());
-	immutable int nftLimit = 600;
 
 	string [] materials;
 	materials ~= "AIR";
