@@ -179,7 +179,24 @@ int main (string [] args)
 
 			auto curTimeStamp = line[0] ~ " " ~ line[1];
 			auto curResult = g.element.prettyName;
-			if (key !in p || records[p[key]].result != curResult)
+
+			bool toAdd = (key !in p);
+			if (!toAdd)
+			{
+				toAdd |= (records[p[key]].result != curResult);
+			}
+			if (!toAdd)
+			{
+				auto prevTime = SysTime.fromSimpleString
+				    (records[p[key]].lastChecked, UTC ());
+				auto nextTime = SysTime.fromSimpleString
+				    (curTimeStamp, UTC ());
+				toAdd |= (prevTime < timeSeparator &&
+				    timeSeparator <= nextTime &&
+				    records[p[key]].result == "-");
+			}
+
+			if (toAdd)
 			{
 				p[key] = records.length.to !(int);
 				auto record = Record
@@ -197,18 +214,6 @@ int main (string [] args)
 					cost[curResult] = record.cost;
 				}
 				records ~= record;
-			}
-
-			auto prevTime = SysTime.fromSimpleString
-			    (records[p[key]].lastChecked, UTC ());
-			auto nextTime = SysTime.fromSimpleString
-			    (curTimeStamp, UTC ());
-			if (prevTime < timeSeparator &&
-			    timeSeparator <= nextTime &&
-			    records[p[key]].result == "-")
-			{
-				records[p[key]].tries = 0;
-				records[p[key]].author = actor;
 			}
 
 			records[p[key]].tries += 1;
