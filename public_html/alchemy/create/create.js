@@ -1,6 +1,6 @@
 // Author: Ivan Kazmenko (gassa@mail.ru)
-const urlWax = 'https://wax.greymass.com';
-// const urlWax = 'https://chain.wax.io';
+// const urlWax = 'https://wax.greymass.com';
+const urlWax = 'https://chain.wax.io';
 const wax = new waxjs.WaxJS (urlWax, null, null, true);
 
 const delay = msecs => new Promise ((resolve, reject) => {
@@ -240,5 +240,32 @@ async function updateTable () {
 			num = ' (' + (balances[s] || 0) + ')';
 		}
 		elem.innerText = s + num;
+	}
+}
+
+async function claim () {
+	doLog ('Claiming...');
+	try {
+		const result = await wax.api.transact ({
+			actions: [{
+				account: 's.rplanet',
+				name: 'claim',
+				authorization: [{
+					actor: wax.userAccount,
+					permission: 'active',
+				}],
+				data: {
+					to: wax.userAccount
+				},
+			}]
+		}, {
+			blocksBehind: 3,
+			expireSeconds: 30
+		});
+		value = result.processed.action_traces[0].inline_traces[0]
+		    .act.data.quantity;
+		doLog ('Claim done! ' + value);
+	} catch (e) {
+		doLog ('Claim error: ' + e.message);
 	}
 }

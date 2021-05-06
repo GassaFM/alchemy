@@ -100,9 +100,11 @@ void main ()
 	writefln !(`<button id="discover" onclick="discover ()">` ~
 	    `Discover</button>`);
 	writefln !(`<button id="updatebank" onclick="updateBank ()">` ~
-	    `Update Bank</button>`);
+	    `Update Gameinfo</button>`);
 	writefln !(`<button id="updatebalances" onclick="updateBalances ()">` ~
 	    `Update Balances</button>`);
+	writefln !(`<button id="claim" onclick="claim ()">` ~
+	    `Claim Aether</button>`);
 	writefln !(`</p>`);
 	writefln !(`<p height="5px"></p>`);
 	writefln !(`<center><h3>Events Log</h3></center>`);
