@@ -1,6 +1,7 @@
 // Author: Ivan Kazmenko (gassa@mail.ru)
 // const urlWax = 'https://wax.greymass.com';
-const urlWax = 'https://chain.wax.io';
+// const urlWax = 'https://chain.wax.io';
+const urlWax = 'https://wax.cryptolions.io';
 const wax = new waxjs.WaxJS (urlWax, null, null, true);
 
 const delay = msecs => new Promise ((resolve, reject) => {
