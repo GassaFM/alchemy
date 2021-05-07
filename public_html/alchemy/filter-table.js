@@ -24,6 +24,7 @@ function reFilter (table) {
 			strings.push (f.innerText);
 		}
 	}
+	body.style.display = 'none';
 	body.querySelectorAll ('tr').forEach ((row, i) => {
 		let ok = true;
 		for (s of strings) {
@@ -45,6 +46,7 @@ function reFilter (table) {
 			row.style.display = 'none';
 		}
 	});
+	body.style.display = 'table-row-group';
 }
 
 function getData (body) {
