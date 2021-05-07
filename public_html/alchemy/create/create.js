@@ -103,7 +103,7 @@ async function updateBalances () {
 	}
 
 	try {
-		let data = {limit: 100, code: 'simpleassets',
+		let data = {limit: 200, code: 'simpleassets',
 		    table: 'accounts', scope: wax.userAccount, json: true};
 		var xhr = new XMLHttpRequest ();
 		xhr.open ("POST",
