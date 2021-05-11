@@ -156,7 +156,7 @@ async function construct (recipe) {
 		} else {
 			updateBank ();
 		}
-		const payment = bank * 0.00000010000025;
+		const payment = bank * 0.00000010000060;
 		const slack = 0.0001;
 		const bonus = 0.00009;
 		const payLess = payment - slack;
