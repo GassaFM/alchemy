@@ -86,9 +86,18 @@ struct PlayerInfo
 
 int main (string [] args)
 {
+	auto outOfSync = false;
+	try
+	{
+		File ("out-of-sync.txt", "rt");
+		outOfSync = true;
+	}
+	catch (Exception e)
+	{
+	}
+
 	auto nowTime = Clock.currTime (UTC ());
-	auto nowString = nowTime.toISOExtString[0..19];
-	auto nowUnix = nowTime.toUnixTime ();
+	auto lastTime = nowTime.toSimpleString ();
 
 	auto fileName = sha256Of ("account:a.rplanet action:discover")
 	    .format !("%(%02x%)") ~ ".log";
@@ -178,6 +187,7 @@ int main (string [] args)
 			}
 
 			auto curTimeStamp = line[0] ~ " " ~ line[1];
+			lastTime = curTimeStamp;
 			auto curResult = g.element.prettyName;
 
 			bool toAdd = (key !in p);
@@ -299,6 +309,14 @@ int main (string [] args)
 		auto playersIndex = players.length.iota.array;
 		playersIndex.schwartzSort !(z =>
 		    tuple (-players[z].totalCrafts, players[z].name));
+
+		if (outOfSync)
+		{
+			nowTime = SysTime.fromSimpleString
+			    (lastTime ~ "Z", UTC ());
+		}
+		auto nowString = nowTime.toISOExtString[0..19];
+		auto nowUnix = nowTime.toUnixTime ();
 
 		void writeHeader (ref File file, string title)
 		{
