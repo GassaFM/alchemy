@@ -94,6 +94,21 @@ int main (string [] args)
 			cost[mat][i + 1] = 1;
 		}
 
+		int [string] minted;
+		auto nftelementsJSON = File ("nftelements.binary", "rb")
+		    .byLine.joiner.parseJSON;
+		foreach (ref row; nftelementsJSON["rows"].array)
+		{
+			auto hex = row["hex"].str.chunks (2).map !(value =>
+			    to !(ubyte) (value, 16)).array;
+			auto cur = parseBinary !(nftelementsElement) (hex);
+			if (!hex.empty)
+			{
+				assert (false);
+			}
+			minted[cur.element.prettyName] = cur.minted;
+		}
+
 		auto input1 = File ("recipes-bootstrap.txt", "rt")
 		    .byLineCopy.array;
 		auto fileName = sha256Of
@@ -150,12 +165,12 @@ int main (string [] args)
 				record.cost[j] = record.recipe
 				    .map !(x => cost[x][j]).sum;
 			}
-			materials ~= curResult;
-			cost[curResult] = record.cost;
+			record.tries = minted[curResult];
+			record.lastChecked = line[0] ~ " " ~ line[1];
 			records ~= record;
 
-			records[p[key]].tries += 1;
-			records[p[key]].lastChecked = line[0] ~ " " ~ line[1];
+			materials ~= curResult;
+			cost[curResult] = record.cost;
 		}
 
 		auto nowString = nowTime.toISOExtString[0..19];
@@ -211,7 +226,7 @@ int main (string [] args)
 			file.writefln !(`<th>3</th>`);
 			file.writefln !(`<th>4</th>`);
 			file.writefln !(`<th>Result</th>`);
-			file.writefln !(`<th>Total Crafts</th>`);
+			file.writefln !(`<th>NFTs Minted</th>`);
 			file.writefln !(`<th>Aether Cost</th>`);
 			file.writefln !(`<th style="width: 5%%">AIR</th>`);
 			file.writefln !(`<th style="width: 5%%">EARTH</th>`);

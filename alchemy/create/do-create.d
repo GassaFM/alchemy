@@ -10,7 +10,7 @@ import std.string;
 
 void main ()
 {
-	auto input = File ("alchemy-recipes.csv", "rt").byLineCopy.array;
+	auto input = File ("recipes.csv", "rt").byLineCopy.array;
 	string [] [string] recipes;
 	foreach (ref line; input)
 	{
