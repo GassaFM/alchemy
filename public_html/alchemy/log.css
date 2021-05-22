@@ -14,12 +14,24 @@ td a {
   white-space: nowrap;
 }
 
+.header:hover {
+  background-color: #BBBBBB;
+}
+
 .time {
   border-style: solid;
   border-width: 1px;
   padding: 2px;
   font-family: "Courier New", Courier, monospace;
   text-align: center;
+}
+
+.attempt-old {
+  background-color: #EEEEFF;
+}
+
+.attempt-new {
+  background-color: #FFFFDD;
 }
 
 .name {
