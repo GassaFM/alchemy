@@ -150,9 +150,19 @@ int main (string [] args)
 			cauldronsElement c;
 			if (line[4] != "-")
 			{
-				auto buf = line[4].hexStringToBinary;
-				c = buf.parseBinary !(cauldronsElement);
-				assert (buf.empty);
+				try
+				{
+					auto buf = line[4].hexStringToBinary;
+					c = buf.parseBinary !(cauldronsElement);
+					assert (buf.empty);
+				}
+				catch (Exception e)
+				{
+					writeln (e);
+					writeln (line);
+					writeln (line[4]);
+					throw new Exception ("!!!");
+				}
 			}
 			if (c.elements.length != 4)
 			{
