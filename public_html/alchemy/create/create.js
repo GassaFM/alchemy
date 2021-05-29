@@ -150,13 +150,13 @@ async function construct (recipe) {
 
 	try {
 		const curMoment = Date.now ();
-		if (curMoment - bankUpdate > 15000) {
+		if (curMoment - bankUpdate > 3000) {
 			await updateBank ();
 			await delay (1000);
 		} else {
 			updateBank ();
 		}
-		const payment = bank * 0.00000010000060;
+		const payment = bank * 0.00000010000100;
 		const slack = 0.0001;
 		const bonus = 0.00009;
 		const payLess = payment - slack;
@@ -199,7 +199,9 @@ async function construct (recipe) {
 		});
 		doLog ('Construct done!');
 		await delay (1000);
-		await discover ();
+		discover ();
+		await delay (100);
+		discover ();
 	} catch (e) {
 		doLog ('Construct error: ' + e.message);
 	}
