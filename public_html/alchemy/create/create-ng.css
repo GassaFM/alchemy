@@ -1,0 +1,132 @@
+td a {
+  display: block;
+  white-space: nowrap;
+  width: 100%;
+  color: #000000;
+  text-decoration: none;
+}
+
+pre {
+  white-space: pre-wrap;
+}
+
+.log {
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+  font-family: Tahoma, Geneva, sans-serif;
+  white-space: nowrap;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.modes {
+  border-style: solid;
+  border-width: 1px;
+  padding: 2px;
+  font-family: Tahoma, Geneva, sans-serif;
+  white-space: nowrap;
+  table-layout: fixed;
+}
+
+.item {
+  padding: 2px;
+  font-family: "Courier New", Courier, monospace;
+  text-align: center;
+}
+
+.mode {
+  border-width: 1px;
+  padding: 2px;
+  border-style: solid;
+  padding: 2px;
+  width: 90px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.mode-single-selected {
+  background-color: #DDDDFF;
+  cursor: pointer;
+}
+
+.mode-reuse-selected {
+  background-color: #DDFFDD;
+  cursor: pointer;
+}
+
+.mode-all-selected {
+  background-color: #FFDDDD;
+  cursor: pointer;
+}
+
+#mode-overview {
+  padding: 8px;
+}
+
+.alchemy-element {
+  border-width: 1px;
+  padding: 2px;
+  border-style: solid;
+  padding: 2px;
+  text-align: left;
+  position: relative;
+}
+
+.elem-text {
+  display: inline-block;
+  position: relative;
+  background-color: inherit;
+  width: 100%;
+  opacity: 0.9;
+}
+
+.delta {
+  position: absolute;
+  background-color: #FFFFFF;
+  border-width: 1px;
+  border-style: solid;
+  opacity: 0.9;
+  right: 2px;
+  z-index: 1;
+}
+
+.ae-disabled:hover {
+  background-color: #DDDDDD;
+  cursor: pointer;
+}
+
+.ae-clickable:hover {
+  background-color: #DDDDFF;
+  cursor: pointer;
+}
+
+.elem-text:hover {
+  z-index: 2;
+}
+
+.ae-required {
+  background-color: #DDFFDD;
+  cursor: pointer;
+}
+
+.ae-selected {
+  background-color: #BBBBFF;
+  cursor: pointer;
+}
+
+.ae-selected:hover {
+  background-color: #FFFF00;
+  cursor: pointer;
+}
+
+.top-part {
+  height: 70vh;
+  overflow-x: scroll;
+  overflow-y: scroll;
+}
+
+.right-part {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
