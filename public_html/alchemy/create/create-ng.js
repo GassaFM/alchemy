@@ -290,7 +290,8 @@ async function construct (elem) {
 		try {
 			const curMoment = Date.now ();
 			if (curMoment - bankUpdate > 5000) {
-				await updateBank ();
+//				await updateBank ();
+				updateBank ();
 			} else {
 //				updateBank ();
 			}
@@ -300,10 +301,14 @@ async function construct (elem) {
 			const bonus = 0.00009;
 //			const payLess = payment - slack;
 			const payLess = payment - bonus;
-			const payLessString = payLess.toFixed (8) + ' WAX';
+//			const payLessString = payLess.toFixed (8) + ' WAX';
+			const payString = payment.toFixed (8) + ' WAX';
 			const bonusString = bonus.toFixed (8) + ' WAX';
+			doLog ('Construct: ' + payString + ' to game');
+/*
 			doLog ('Construct: ' + payLessString +
 			    ' to game, ' + bonusString + ' to tool');
+*/
 			const recipe = recipes[elem].join ();
 			const result = await wax.api.transact ({
 				actions: [{
@@ -316,9 +321,10 @@ async function construct (elem) {
 					data: {
 						from: wax.userAccount,
 						to: 'a.rplanet',
-						quantity: payLessString,
+						quantity: payString,
 						memo: 'construct:' + recipe
 					},
+/*
 				}, {
 					account: 'eosio.token',
 					name: 'transfer',
@@ -332,6 +338,7 @@ async function construct (elem) {
 						quantity: bonusString,
 						memo: 'a.rplanet::construct'
 					},
+*/
 				}]
 			}, {
 				useLastIrreversible: true,
