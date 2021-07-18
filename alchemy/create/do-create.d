@@ -46,9 +46,9 @@ void main ()
 	writefln !(``);
 	writefln !(`<script>`);
 	writefln !(`if (location.protocol !== 'https:') {`);
-	writefln !(`	location.replace ` ~
-	    `("https:${location.href.substring" +`);
-	writefln !(`	    "(location.protocol.length)}");`);
+	writefln !(`	location.replace ('https://' +`);
+	writefln !(`	    location.href.substring ` ~
+	    `(location.protocol.length));`);
 	writefln !(`}`);
 	writefln !(`</script>`);
 	writefln !(`<script src='waxjs.js'></script>`);
@@ -113,7 +113,7 @@ void main ()
 	writefln !(`</div>`);
 	writefln !(``);
 
-	writefln !(`<script src='create.js'></script>`);
+	writefln !(`<script src='create-t.js'></script>`);
 	writefln !(`</body>`);
 	writefln !(`</html>`);
 }

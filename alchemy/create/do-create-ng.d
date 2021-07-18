@@ -87,9 +87,9 @@ void main ()
 	{
 		writefln !(`<script>`);
 		writefln !(`if (location.protocol !== 'https:') {`);
-		writefln !(`	location.replace ` ~
-		    `("https:${location.href.substring" +`);
-		writefln !(`	    "(location.protocol.length)}");`);
+		writefln !(`	location.replace ('https://' +`);
+		writefln !(`	    location.href.substring ` ~
+		    `(location.protocol.length));`);
 		writefln !(`}`);
 		writefln !(`</script>`);
 	}
