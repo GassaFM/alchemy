@@ -40,6 +40,7 @@ async function init () {
 	var loggedIn = await wax.isAutoLoginAvailable ();
 	if (loggedIn) {
 		updateBalances ();
+//		wax.api.getAbi ('eosio.token');
 	}
 }
 
@@ -74,6 +75,7 @@ async function login () {
 		doLog ('Login error: ' + e.message);
 	}
 	updateBalances ();
+//	wax.api.getAbi ('eosio.token');
 }
 
 async function updateBank () {
@@ -223,6 +225,20 @@ function constructReset () {
 var preUses = {};
 var preBuilds = {};
 
+const defaultActionsToPack = 5;
+var numActionsToPack = defaultActionsToPack;
+var singleActionFromTime = 0;
+
+setInterval (updateMultiActions, 100);
+
+async function updateMultiActions () {
+	const curMoment = Date.now ();
+	if (curMoment - singleActionFromTime > 15000) {
+		numActionsToPack = defaultActionsToPack;
+		singleActionFromTime = curMoment;
+	}
+}
+
 function constructPre (cell, elem) {
 	constructClear ();
 	if (cell.classList.contains ('ae-selected')) {
@@ -356,6 +372,87 @@ async function construct (elem) {
 				await delay (1000);
 				if (step == 1)
 				{
+					return false;
+				}
+			}
+		}
+	}
+	doLog ('Construct done!');
+	await delay (1000);
+/*
+	await discover ();
+*/
+
+/*
+	const curMoment = Date.now ();
+	if (curMoment - balancesUpdate > 5000 || constructQueue.length == 0) {
+		updateBalances ();
+	}
+*/
+	if (constructQueue.length == 0) {
+		updateBalances ();
+	}
+
+	return true;
+}
+
+async function constructMulti (elems) {
+	doLog ('Constructing: ' + elems + '...');
+	if (!wax.api) {
+		doLog ('Construct error: ' + 'login first');
+		return;
+	}
+
+	const steps = 2;
+	for (var step = 0; step < steps; step++) {
+		try {
+			const curMoment = Date.now ();
+			if (curMoment - bankUpdate > 5000) {
+				updateBank ();
+			}
+			const payment = bank * 0.0000001;
+			const payString = payment.toFixed (8) + ' WAX';
+			var actionsVar = [];
+			for (elem of elems) {
+				doLog ('Construct: ' + payString + ' to game');
+				const recipe = recipes[elem].join ();
+				actionsVar.push ({
+					account: 'eosio.token',
+					name: 'transfer',
+					authorization: [{
+						actor: wax.userAccount,
+						permission: 'active',
+					}],
+					data: {
+						from: wax.userAccount,
+						to: 'a.rplanet',
+						quantity: payString,
+						memo: 'construct:' + recipe
+					}
+				});
+			}
+//			alert ('!');
+//			console.log (actionsVar);
+			const result = await wax.api.transact ({
+				actions: actionsVar
+			}, {
+				useLastIrreversible: true,
+				blocksBehind: 3,
+				expireSeconds: 30
+			});
+			break;
+		} catch (e) {
+			if (e.message.includes ("discover") && step == 0) {
+				doLog ('Construct error, trying discover: ' +
+				    e.message);
+				await discover ();
+			} else {
+				doLog ('Construct error: ' + e.message);
+				await delay (1000);
+				if (step == 1)
+				{
+					numActionsToPack = 1;
+					singleActionFromTime = Date.now ();
 					return false;
 				}
 			}

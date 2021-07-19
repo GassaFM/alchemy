@@ -10,6 +10,56 @@ async function processQueue () {
 	if (inProgress) {
 		return;
 	}
+	if (numActionsToPack == 1) {
+		await processQueueSingle ();
+		return;
+	}
+	inProgress = true;
+
+	if (constructQueue.length > 0) {
+		let curNum = Math.min (constructQueue.length,
+		    numActionsToPack);
+		let curs = [];
+		for (i = 0; i < curNum; i++) {
+			let cur = constructQueue.shift ();
+			curs.push (cur);
+			queueBuilds[cur] = (queueBuilds[cur] - 1);
+			for (part of recipes[cur]) {
+				queueUses[part] = (queueUses[part] || 0) - 1;
+			}
+		}
+
+		if (await constructMulti (curs)) {
+			for (i = 0; i < curNum; i++) {
+				let cur = curs.pop ();
+				for (part of recipes[cur]) {
+					balances[part] =
+					    (balances[part] || 0) - 1;
+				}
+				balances[cur] = (balances[cur] || 0) + 1;
+			}
+		} else {
+			for (i = 0; i < curNum; i++) {
+				let cur = curs.pop ();
+				constructQueue.unshift (cur);
+				queueBuilds[cur] = (queueBuilds[cur] + 1);
+				for (part of recipes[cur]) {
+					queueUses[part] =
+					    (queueUses[part] || 0) + 1;
+				}
+			}
+		}
+
+		updateTable ();
+		updateQueueDisplay ();
+	}
+	inProgress = false;
+}
+
+async function processQueueSingle () {
+	if (inProgress) {
+		return;
+	}
 	inProgress = true;
 	if (constructQueue.length > 0) {
 		let cur = constructQueue.shift ();
