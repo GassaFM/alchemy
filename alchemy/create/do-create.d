@@ -58,6 +58,7 @@ void main ()
 	writefln !(`<div class="left-part">`);
 	writefln !(`<h2>Element Creation</h2>`);
 	writefln !(``);
+	writefln !(`<p><a href="../index.html">Back to main page</a></p>`);
 	writefln !(`<p>Warning: this third-party tool for the game ` ~
 	    `is provided as is, with no warranty of any kind! ` ~
 	    `The tool is <a href="https://github.com/GassaFM/alchemy">` ~
