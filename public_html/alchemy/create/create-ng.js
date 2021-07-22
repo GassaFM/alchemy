@@ -225,11 +225,14 @@ function constructReset () {
 var preUses = {};
 var preBuilds = {};
 
-const defaultActionsToPack = 5;
+// uncomment if no discover
+// const defaultActionsToPack = 5;
+const defaultActionsToPack = 1;
 var numActionsToPack = defaultActionsToPack;
 var singleActionFromTime = 0;
 
-setInterval (updateMultiActions, 100);
+// uncomment if no discover
+// setInterval (updateMultiActions, 100);
 
 async function updateMultiActions () {
 	const curMoment = Date.now ();
@@ -379,9 +382,7 @@ async function construct (elem) {
 	}
 	doLog ('Construct done!');
 	await delay (1000);
-/*
 	await discover ();
-*/
 
 /*
 	const curMoment = Date.now ();
@@ -389,9 +390,11 @@ async function construct (elem) {
 		updateBalances ();
 	}
 */
+/* uncomment if no discover
 	if (constructQueue.length == 0) {
 		updateBalances ();
 	}
+*/
 
 	return true;
 }
@@ -576,7 +579,7 @@ async function updateQueueDisplay () {
 	if (s == "") {
 		s = "(empty)";
 	}
-	queueElement.innerText = "Queue: " + s;
+	queueElement.innerText = "Queue (" + constructQueue.length + "): " + s;
 }
 
 async function claim () {
