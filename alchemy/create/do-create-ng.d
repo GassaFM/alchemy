@@ -202,7 +202,14 @@ void main ()
 	writefln !(`</div>`);
 	writefln !(``);
 
-	writefln !(`<script src='recipes.js'></script>`);
+	// quick fix: embed recipes to not have to hard-refresh the page
+//	writefln !(`<script src='recipes.js'></script>`);
+	writefln !(`<script>`);
+	foreach (line; File ("recipes.js", "rt").byLineCopy)
+	{
+		writeln ("\t", line);
+	}
+	writefln !(`</script>`);
 	writefln !(`<script src='traverse.js'></script>`);
 	writefln !(`<script src='enqueue.js'></script>`);
 	writefln !(`<script src='create-ng.js'></script>`);
