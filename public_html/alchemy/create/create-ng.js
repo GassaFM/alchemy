@@ -225,14 +225,11 @@ function constructReset () {
 var preUses = {};
 var preBuilds = {};
 
-// uncomment if no discover
-// const defaultActionsToPack = 5;
-const defaultActionsToPack = 1;
+const defaultActionsToPack = 12;
 var numActionsToPack = defaultActionsToPack;
 var singleActionFromTime = 0;
 
-// uncomment if no discover
-// setInterval (updateMultiActions, 100);
+setInterval (updateMultiActions, 100);
 
 async function updateMultiActions () {
 	const curMoment = Date.now ();
@@ -390,11 +387,10 @@ async function construct (elem) {
 		updateBalances ();
 	}
 */
-/* uncomment if no discover
+
 	if (constructQueue.length == 0) {
 		updateBalances ();
 	}
-*/
 
 	return true;
 }
