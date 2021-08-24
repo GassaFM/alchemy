@@ -24,6 +24,7 @@ var discoverTimestamp = 0;
 const discoverInterval = 1000;
 var balances = {};
 var balancesUpdate = 0;
+var numMultiplier = 1;
 
 var mode = "SINGLE";
 modeSingle ();
@@ -250,39 +251,42 @@ function constructPre (cell, elem) {
 		constructReset ();
 		cell.classList.add ('ae-selected');
 		cell.classList.remove ('ae-clickable');
+		numMultiplier = document.getElementById ('num-multiplier').value;
 		if (elem in recipes) {
-			if (mode == "SINGLE") {
-				preBuilds[elem] = (preBuilds[elem] || 0) + 1;
-				for (part of recipes[elem]) {
-					let button = document.getElementById ('ae-' + part);
-					button.classList.add ('ae-required');
-					preUses[part] = (preUses[part] || 0) + 1;
+			for (var numCur = 0; numCur < numMultiplier; numCur++) {
+				if (mode == "SINGLE") {
+					preBuilds[elem] = (preBuilds[elem] || 0) + 1;
+					for (part of recipes[elem]) {
+						let button = document.getElementById ('ae-' + part);
+						button.classList.add ('ae-required');
+						preUses[part] = (preUses[part] || 0) + 1;
+					}
+				} else if (mode == "REUSE") {
+					recurRecipesReuse (elem, function (s) {
+						let button = document.getElementById ('ae-' + s);
+						button.classList.add ('ae-required');
+						if (s in recipes) {
+							preBuilds[s] = (preBuilds[s] || 0) + 1;
+							for (part of recipes[s]) {
+								let button = document.getElementById ('ae-' + part);
+								button.classList.add ('ae-required');
+									preUses[part] = (preUses[part] || 0) + 1;
+								}
+							}
+						}, function (s) {
+					});
+				} else if (mode == "ALL") {
+					recurRecipesAll (elem, function (s) {
+						let button = document.getElementById ('ae-' + s);
+						button.classList.add ('ae-required');
+						if (s in recipes) {
+							preBuilds[s] = (preBuilds[s] || 0) + 1;
+							for (part of recipes[s]) {
+								preUses[part] = (preUses[part] || 0) + 1;
+							}
+						}
+					});
 				}
-			} else if (mode == "REUSE") {
-				recurRecipesReuse (elem, function (s) {
-					let button = document.getElementById ('ae-' + s);
-					button.classList.add ('ae-required');
-					if (s in recipes) {
-						preBuilds[s] = (preBuilds[s] || 0) + 1;
-						for (part of recipes[s]) {
-							let button = document.getElementById ('ae-' + part);
-							button.classList.add ('ae-required');
-							preUses[part] = (preUses[part] || 0) + 1;
-						}
-					}
-				}, function (s) {
-				});
-			} else if (mode == "ALL") {
-				recurRecipesAll (elem, function (s) {
-					let button = document.getElementById ('ae-' + s);
-					button.classList.add ('ae-required');
-					if (s in recipes) {
-						preBuilds[s] = (preBuilds[s] || 0) + 1;
-						for (part of recipes[s]) {
-							preUses[part] = (preUses[part] || 0) + 1;
-						}
-					}
-				});
 			}
 		}
 /*
@@ -490,7 +494,7 @@ async function discover () {
 		for (var step = 0; step < steps; step++) {
 			var xhr = new XMLHttpRequest ();
 			xhr.open ("POST",
-			    "https://prospectors.online/alchemy/create/rplanet-discover.php", true);
+			    "https://prospectors.online/alchemy/create/rplanet-discover-t.php", true);
 			xhr.setRequestHeader ('Content-Type', 'application/json');
 			let data = {account: wax.userAccount};
 			xhr.send (JSON.stringify (data));

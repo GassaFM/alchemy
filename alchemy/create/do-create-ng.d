@@ -113,6 +113,18 @@ void main ()
 	writefln !(`<p height="5px"></p>`);
 	writefln !(``);
 
+	writefln !(`<p id="multiplier-overview">`);
+	writefln !(`<label for="num-multiplier" style="float:left;">` ~
+	    `<b>Multiplier:</b>&nbsp;</label>`);
+	writefln !(`<input type="number" id="num-multiplier" ` ~
+	    `min="1" max="100" value="1" ` ~
+	    `style="width: 50px; float:left; margin-right:20px;">`);
+	writefln !(`The number of same elements to craft in one go. ` ~
+	    `For example, you may want to create 100 PRESS ` ~
+	    `by clicking just once.</p>`);
+	writefln !(`<p height="5px"></p>`);
+	writefln !(``);
+
 	writefln !(`<table class="modes" ` ~
 	    `style="float:left; margin-right:20px;">`);
 	writefln !(`<tr>`);

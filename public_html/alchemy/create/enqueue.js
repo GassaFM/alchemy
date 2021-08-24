@@ -80,13 +80,16 @@ async function processQueueSingle () {
 }
 
 async function constructProceed (elem) {
-	doLog ('Preparing ' + mode + ' construction: ' + elem + '...');
-	if (mode == "SINGLE") {
-		await constructSingle (elem);
-	} else if (mode == "REUSE") {
-		await constructReuse (elem);
-	} else if (mode == "ALL") {
-		await constructAll (elem);
+	doLog ('Preparing ' + mode + ' construction: ' + elem + ' * ' +
+	    numMultiplier + '...');
+	for (var numCur = 0; numCur < numMultiplier; numCur++) {
+		if (mode == "SINGLE") {
+			await constructSingle (elem);
+		} else if (mode == "REUSE") {
+			await constructReuse (elem);
+		} else if (mode == "ALL") {
+			await constructAll (elem);
+		}
 	}
 	updateQueueDisplay ();
 	updateTable ();
