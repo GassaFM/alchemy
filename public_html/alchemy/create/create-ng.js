@@ -24,7 +24,9 @@ var discoverTimestamp = 0;
 const discoverInterval = 1000;
 var balances = {};
 var balancesUpdate = 0;
+
 var numMultiplier = 1;
+document.getElementById ('num-multiplier').value = numMultiplier;
 
 var mode = "SINGLE";
 modeSingle ();
