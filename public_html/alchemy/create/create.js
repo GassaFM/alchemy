@@ -20,7 +20,8 @@ scrollingObserver.observe (responseElement,
 
 var bank = 0.0;
 var bankUpdate = 0;
-
+var discoverTimestamp = 0;
+const discoverInterval = 1000;
 var balances = {};
 
 init ();
@@ -88,7 +89,7 @@ async function updateBank () {
 			bank = bank * 1.0;
 			bankUpdate = Date.now ();
 			doLog ('Gameinfo: done, price is ~' +
-			    (bank * 1E-7).toFixed (8) + ' WAX');
+			    (bank * 1E-7 * 0.2).toFixed (8) + ' WAX');
 		}
 	} catch (e) {
 		doLog ('Gameinfo error: ' + e.message);
@@ -156,7 +157,8 @@ async function construct (recipe) {
 		} else {
 			updateBank ();
 		}
-		const payment = bank * 0.00000010000100;
+		const payment = bank * 0.00000010000300;
+		payment *= 0.2;
 		const slack = 0.0001;
 		const bonus = 0.00009;
 		const payLess = payment - slack;
@@ -199,8 +201,8 @@ async function construct (recipe) {
 		});
 		doLog ('Construct done!');
 		await delay (1000);
-		discover ();
-		await delay (100);
+//		discover ();
+//		await delay (100);
 		discover ();
 	} catch (e) {
 		doLog ('Construct error: ' + e.message);
@@ -208,6 +210,13 @@ async function construct (recipe) {
 }
 
 async function discover () {
+	var curTimestamp = Date.now ();
+	while (curTimestamp - discoverTimestamp < discoverInterval) {
+		doLog ('Waiting for discover...');
+		await delay (discoverInterval);
+		curTimestamp = Date.now ();
+	}
+	discoverTimestamp = curTimestamp;
 	doLog ('Discovering...');
 	try {
 		var xhr = new XMLHttpRequest ();
