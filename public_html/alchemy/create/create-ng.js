@@ -98,7 +98,7 @@ async function updateBank () {
 			bank = bank.substring (0, bank.length - 4);
 			bank = bank * 1.0;
 			doLog ('Gameinfo: done, price is ~' +
-			    (bank * 1E-7).toFixed (8) + ' WAX');
+			    (bank * 1E-7 * 0.2).toFixed (8) + ' WAX');
 		}
 	} catch (e) {
 		doLog ('Gameinfo error: ' + e.message);
@@ -318,7 +318,7 @@ async function construct (elem) {
 //				updateBank ();
 			}
 //			const payment = bank * 0.00000010000300;
-			const payment = bank * 0.0000001;
+			const payment = bank * 0.0000001 * 0.2;
 			const slack = 0.0001;
 			const bonus = 0.00009;
 //			const payLess = payment - slack;
@@ -415,7 +415,7 @@ async function constructMulti (elems) {
 			if (curMoment - bankUpdate > 5000) {
 				updateBank ();
 			}
-			const payment = bank * 0.0000001;
+			const payment = bank * 0.0000001 * 0.2;
 			const payString = payment.toFixed (8) + ' WAX';
 			var actionsVar = [];
 			for (elem of elems) {
