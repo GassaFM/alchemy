@@ -77,7 +77,7 @@ void main ()
 	    ` charset=UTF-8">`);
 	writefln !(`<head>`);
 	writefln !(`<title>Element Creation NG` ~
-	    ` &mdash; Fast &mdash; User CPU</title>`);
+	    ` &mdash; Slow &mdash; Game CPU</title>`);
 	writefln !(`<link rel="stylesheet" href="./create-ng.css" ` ~
 	    `type="text/css">`);
 	writefln !(`</head>`);
@@ -95,14 +95,14 @@ void main ()
 		writefln !(`</script>`);
 	}
 
-	writefln !(`<script src='waxjs.js'></script>`);
+	writefln !(`<script src='waxjs2.js'></script>`);
 	writefln !(``);
 	writefln !(`<body>`);
 	writefln !(``);
 	writefln !(`<div class="top-part">`);
 	writefln !(`<h2>Element Creation NG` ~
-	    ` &mdash; Fast &mdash; User CPU` ~
-	    ` <a href="./create-ng-cpu.html">(switch)</a></h2>`);
+	    ` &mdash; Slow &mdash; Game CPU` ~
+	    ` <a href="./create-ng.html">(switch)</a></h2>`);
 	writefln !(``);
 	writefln !(`<p><a href="../index.html">Back to main page</a></p>`);
 	writefln !(`<p>Warning: this third-party tool for the game ` ~
@@ -227,7 +227,7 @@ void main ()
 	writefln !(`</script>`);
 	writefln !(`<script src='traverse.js'></script>`);
 	writefln !(`<script src='enqueue.js'></script>`);
-	writefln !(`<script src='create-ng.js'></script>`);
+	writefln !(`<script src='create-ng-cpu.js'></script>`);
 	writefln !(`</body>`);
 	writefln !(`</html>`);
 }

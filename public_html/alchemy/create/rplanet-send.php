@@ -10,10 +10,10 @@ $ch = curl_init ();
 
 $data = json_decode (file_get_contents ('php://input'), true);
 
-curl_setopt ($ch, CURLOPT_URL, 'https://rplanet.io/api/discover');
+curl_setopt ($ch, CURLOPT_URL, 'https://rplanet.io/api/send_transaction');
 curl_setopt ($ch, CURLOPT_RETURNTRANSFER, 1);
 curl_setopt ($ch, CURLOPT_POST, 1);
-curl_setopt ($ch, CURLOPT_POSTFIELDS, '{"account":"' . $data['account'] . '"}');
+curl_setopt ($ch, CURLOPT_POSTFIELDS, json_encode ($data));
 
 $headers = array ();
 $headers[] = 'Content-Type: application/json';

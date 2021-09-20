@@ -2,7 +2,7 @@
 // const urlWax = 'https://wax.greymass.com';
 // const urlWax = 'https://chain.wax.io';
 const urlWax = 'https://wax.cryptolions.io';
-const wax = new waxjs.WaxJS (urlWax, null, null, true);
+const wax = new waxjs.WaxJS ({rpcEndpoint: urlWax});
 
 const delay = msecs => new Promise ((resolve, reject) => {
 	setTimeout (_ => resolve (), msecs)
@@ -20,8 +20,6 @@ scrollingObserver.observe (responseElement,
 
 var bank = 0.0;
 var bankUpdate = 0;
-var discoverTimestamp = 0;
-const discoverInterval = 1000;
 var balances = {};
 var balancesUpdate = 0;
 
@@ -228,7 +226,7 @@ function constructReset () {
 var preUses = {};
 var preBuilds = {};
 
-const defaultActionsToPack = 12;
+const defaultActionsToPack = 1;
 var numActionsToPack = defaultActionsToPack;
 var singleActionFromTime = 0;
 
@@ -301,111 +299,14 @@ function constructPre (cell, elem) {
 }
 
 async function construct (elem) {
-	doLog ('Constructing: ' + elem + '...');
-	if (!wax.api) {
-		doLog ('Construct error: ' + 'login first');
-		return;
-	}
-
-	const steps = 2;
-	for (var step = 0; step < steps; step++) {
-		try {
-			const curMoment = Date.now ();
-			if (curMoment - bankUpdate > 5000) {
-//				await updateBank ();
-				updateBank ();
-			} else {
-//				updateBank ();
-			}
-//			const payment = bank * 0.00000010000300;
-			const payment = bank * 0.0000001 * 0.2;
-			const slack = 0.0001;
-			const bonus = 0.00009;
-//			const payLess = payment - slack;
-			const payLess = payment - bonus;
-//			const payLessString = payLess.toFixed (8) + ' WAX';
-			const payString = payment.toFixed (8) + ' WAX';
-			const bonusString = bonus.toFixed (8) + ' WAX';
-			doLog ('Construct: ' + payString + ' to game');
-/*
-			doLog ('Construct: ' + payLessString +
-			    ' to game, ' + bonusString + ' to tool');
-*/
-			const recipe = recipes[elem].join ();
-			const result = await wax.api.transact ({
-				actions: [{
-					account: 'eosio.token',
-					name: 'transfer',
-					authorization: [{
-						actor: wax.userAccount,
-						permission: 'active',
-					}],
-					data: {
-						from: wax.userAccount,
-						to: 'a.rplanet',
-						quantity: payString,
-						memo: 'construct:' + recipe
-					},
-/*
-				}, {
-					account: 'eosio.token',
-					name: 'transfer',
-					authorization: [{
-						actor: wax.userAccount,
-						permission: 'active',
-					}],
-					data: {
-						from: wax.userAccount,
-						to: 'reservedness',
-						quantity: bonusString,
-						memo: 'a.rplanet::construct'
-					},
-*/
-				}]
-			}, {
-//				useLastIrreversible: true,
-				blocksBehind: 60,
-				expireSeconds: 300
-			});
-			break;
-		} catch (e) {
-			if (e.message.includes ("discover") && step == 0) {
-				doLog ('Construct error, trying discover: ' +
-				    e.message);
-				await discover ();
-			} else {
-				doLog ('Construct error: ' + e.message);
-				await delay (1000);
-				if (step == 1)
-				{
-					return false;
-				}
-			}
-		}
-	}
-	doLog ('Construct done!');
-	await delay (1000);
-	await discover ();
-
-/*
-	const curMoment = Date.now ();
-	if (curMoment - balancesUpdate > 5000 || constructQueue.length == 0) {
-		updateBalances ();
-	}
-*/
-
-	if (constructQueue.length == 0) {
-		updateBalances ();
-	}
-
-	return true;
+	return await constructMulti ([elem]);
 }
 
 async function constructMulti (elems) {
 	doLog ('Constructing: ' + elems + '...');
 	if (!wax.api) {
 		doLog ('Construct error: ' + 'login first');
-		return;
+		return false;
 	}
 
 	const steps = 2;
@@ -425,6 +326,9 @@ async function constructMulti (elems) {
 					account: 'eosio.token',
 					name: 'transfer',
 					authorization: [{
+						actor: 'w.rplanet',
+						permission: 'active',
+					}, {
 						actor: wax.userAccount,
 						permission: 'active',
 					}],
@@ -436,23 +340,50 @@ async function constructMulti (elems) {
 					}
 				});
 			}
-//			alert ('!');
 //			console.log (actionsVar);
+			const myKeys = await wax.api
+			    .signatureProvider.getAvailableKeys ();
+/*
+			const allKeys = myKeys + ',EOS8NpCnBbL1qoQsrPPeSDkWRjrnvXWT4H432yV9UmEXS8qFxneyC';
+			console.log (allKeys);
+*/
 			const result = await wax.api.transact ({
 				actions: actionsVar
 			}, {
 //				useLastIrreversible: true,
 				blocksBehind: 60,
-				expireSeconds: 300
+				expireSeconds: 300,
+				sign: true,
+				requiredKeys: myKeys,
+				broadcast: false,
 			});
-			break;
-		} catch (e) {
-			if (e.message.includes ("discover") && step == 0) {
-				doLog ('Construct error, trying discover: ' +
-				    e.message);
-				await discover ();
-			} else {
-				doLog ('Construct error: ' + e.message);
+//			console.log (result);
+
+			var xhr = new XMLHttpRequest ();
+			xhr.open ("POST",
+			    "https://prospectors.online/alchemy/create/rplanet-send.php", true);
+			xhr.setRequestHeader ('Content-Type', 'application/json');
+			let data = {
+				account: wax.userAccount,
+				data: {
+					payload: btoa (String.fromCharCode
+					    .apply (null, result.serializedTransaction)),
+					signatures: result.signatures
+				}
+			};
+			xhr.send (JSON.stringify (data));
+			var response = {};
+			xhr.onload = async function () {
+				response = JSON.parse (this.responseText);
+//				doLog ('Construct done! ' + this.responseText);
+//				doLog ('Construct done!');
+			}
+			while (xhr.readyState < 4) {
+				await delay (100);
+			}
+			if ("error" in response) {
+//				doLog ('Construct error! ' + response);
+				doLog ('Construct error!');
 				await delay (1000);
 				if (step == 1)
 				{
@@ -460,65 +391,28 @@ async function constructMulti (elems) {
 					singleActionFromTime = Date.now ();
 					return false;
 				}
+			} else {
+				break;
+			}
+		} catch (e) {
+			doLog ('Construct error: ' + e.message);
+			await delay (1000);
+			if (step == 1)
+			{
+				numActionsToPack = 1;
+				singleActionFromTime = Date.now ();
+				return false;
 			}
 		}
 	}
 	doLog ('Construct done!');
 	await delay (1000);
-/*
-	await discover ();
-*/
 
-/*
-	const curMoment = Date.now ();
-	if (curMoment - balancesUpdate > 5000 || constructQueue.length == 0) {
-		updateBalances ();
-	}
-*/
 	if (constructQueue.length == 0) {
 		updateBalances ();
 	}
 
 	return true;
-}
-
-async function discover () {
-	var curTimestamp = Date.now ();
-	while (curTimestamp - discoverTimestamp < discoverInterval) {
-		doLog ('Waiting for discover...');
-		await delay (discoverInterval);
-		curTimestamp = Date.now ();
-	}
-	discoverTimestamp = curTimestamp;
-	doLog ('Discovering...');
-	try {
-		const steps = 2;
-		for (var step = 0; step < steps; step++) {
-			var xhr = new XMLHttpRequest ();
-			xhr.open ("POST",
-			    "https://prospectors.online/alchemy/create/rplanet-discover-t.php", true);
-			xhr.setRequestHeader ('Content-Type', 'application/json');
-			let data = {account: wax.userAccount};
-			xhr.send (JSON.stringify (data));
-			var response = "";
-			xhr.onload = async function () {
-				response = JSON.parse (this.responseText);
-				doLog ('Discover done! ' + this.responseText);
-			}
-			while (xhr.readyState < 4) {
-				await delay (100);
-			}
-			if ("error" in response) {
-				doLog ('Discover error.');
-			} else {
-				break;
-			}
-		}
-		await delay (1000);
-		updateBalances ();
-	} catch (e) {
-		doLog ('Discover error: ' + e.message);
-	}
 }
 
 async function updateTable () {
@@ -600,8 +494,9 @@ async function claim () {
 				},
 			}]
 		}, {
-			blocksBehind: 3,
-			expireSeconds: 30
+//			useLastIrreversible: true,
+			blocksBehind: 60,
+			expireSeconds: 300
 		});
 		value = result.processed.action_traces[0].inline_traces[0]
 		    .act.data.quantity;

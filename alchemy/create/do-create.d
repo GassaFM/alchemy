@@ -114,7 +114,7 @@ void main ()
 	writefln !(`</div>`);
 	writefln !(``);
 
-	writefln !(`<script src='create-t.js'></script>`);
+	writefln !(`<script src='create.js'></script>`);
 	writefln !(`</body>`);
 	writefln !(`</html>`);
 }
