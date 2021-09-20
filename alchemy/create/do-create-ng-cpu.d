@@ -1,5 +1,5 @@
 // Author: Ivan Kazmenko (gassa@mail.ru)
-module do_create_ng;
+module do_create_ng_cpu;
 import std.algorithm;
 import std.ascii;
 import std.conv;
